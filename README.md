@@ -1,70 +1,231 @@
-# Getting Started with Create React App
+# CodeCollab - Real-time Code Collaboration Platform
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A GitHub-inspired code collaboration platform built with React, featuring real-time multi-user code editing, version control, and team-based access with secure JWT authentication.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+- **User Authentication**: JWT-based registration and login system
+- **Real-time Collaboration**: Multi-user code editing with WebSocket support
+- **Project Management**: Create, edit, and manage code projects
+- **Team Collaboration**: Role-based access (Owner, Collaborator, Viewer)
+- **Version Control**: Save versions like commits with commit messages
+- **Modern UI**: Beautiful, responsive interface built with Tailwind CSS
+- **Code Editor**: Monaco Editor with syntax highlighting and IntelliSense
 
-### `npm start`
+## 🛠️ Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Frontend
+- **React 19** - Modern React with hooks
+- **React Router** - Client-side routing
+- **Monaco Editor** - Professional code editor
+- **Tailwind CSS** - Utility-first CSS framework
+- **Socket.io Client** - Real-time WebSocket communication
+- **Axios** - HTTP client for API calls
+- **JWT Decode** - JWT token handling
+- **Lucide React** - Beautiful icons
+- **React Hot Toast** - Toast notifications
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Backend (Required)
+- **Spring Boot** - Java backend framework
+- **MySQL** - Database
+- **WebSocket** - Real-time communication
+- **JWT** - Authentication
 
-### `npm test`
+## 📦 Installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/ranveer2312/Code_Collab.git
+   cd Code_Collab
+   ```
 
-### `npm run build`
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   npm run install-deps
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. **Set up environment variables**
+   Create a `.env` file in the root directory:
+   ```env
+   REACT_APP_API_URL=http://localhost:8080/api
+   REACT_APP_WS_URL=http://localhost:8080
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4. **Start the development server**
+   ```bash
+   npm start
+   # or
+   npm run dev
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+5. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-### `npm run eject`
+## 🏗️ Project Structure
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```
+src/
+├── components/
+│   ├── auth/           # Authentication components
+│   │   ├── Login.js
+│   │   └── Register.js
+│   ├── dashboard/      # Dashboard components
+│   │   ├── Dashboard.js
+│   │   └── CreateProjectModal.js
+│   ├── editor/         # Code editor components
+│   │   └── ProjectEditor.js
+│   ├── layout/         # Layout components
+│   │   └── Navbar.js
+│   ├── profile/        # User profile components
+│   │   └── Profile.js
+│   └── projects/       # Project management components
+│       └── ProjectSettings.js
+├── contexts/           # React contexts
+│   └── AuthContext.js
+├── services/           # API services
+│   ├── authService.js
+│   ├── projectService.js
+│   └── websocketService.js
+└── App.js             # Main application component
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 🔧 Available Scripts
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- `npm start` - Start the development server
+- `npm run dev` - Start the development server (alias for start)
+- `npm run build` - Build the app for production
+- `npm test` - Run tests
+- `npm run lint` - Run ESLint
+- `npm run format` - Format code with Prettier
+- `npm run install-deps` - Install dependencies
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🌐 API Endpoints
 
-## Learn More
+The frontend expects the following API endpoints from your Spring Boot backend:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/auth/profile` - Get user profile
+- `PUT /api/auth/profile` - Update user profile
+- `PUT /api/auth/change-password` - Change password
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Projects
+- `GET /api/projects` - Get user's projects
+- `POST /api/projects` - Create new project
+- `GET /api/projects/:id` - Get project details
+- `PUT /api/projects/:id` - Update project
+- `DELETE /api/projects/:id` - Delete project
 
-### Code Splitting
+### Files
+- `GET /api/projects/:id/files` - Get project files
+- `GET /api/projects/:id/files/content` - Get file content
+- `PUT /api/projects/:id/files/content` - Save file content
+- `POST /api/projects/:id/files` - Create new file
+- `DELETE /api/projects/:id/files` - Delete file
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Collaborators
+- `GET /api/projects/:id/collaborators` - Get project collaborators
+- `POST /api/projects/:id/collaborators` - Add collaborator
+- `PUT /api/projects/:id/collaborators/:userId` - Update collaborator role
+- `DELETE /api/projects/:id/collaborators/:userId` - Remove collaborator
 
-### Analyzing the Bundle Size
+### Versions
+- `GET /api/projects/:id/versions` - Get project versions
+- `POST /api/projects/:id/versions` - Create new version
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 🔌 WebSocket Events
 
-### Making a Progressive Web App
+The frontend sends and listens for these WebSocket events:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Client to Server
+- `join_project` - Join a project room
+- `leave_project` - Leave a project room
+- `file_content_change` - File content changed
+- `cursor_position` - Cursor position changed
+- `selection_change` - Text selection changed
+- `typing_status` - User typing status
 
-### Advanced Configuration
+### Server to Client
+- `user_joined_project` - User joined the project
+- `user_left_project` - User left the project
+- `file_content_changed` - File content was changed
+- `cursor_position_changed` - Cursor position changed
+- `selection_changed` - Selection changed
+- `user_typing` - User is typing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 🎨 UI Components
 
-### Deployment
+### Authentication
+- **Login Form**: Email/password login with validation
+- **Register Form**: User registration with password strength indicator
+- **Protected Routes**: Automatic redirection for unauthenticated users
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Dashboard
+- **Project Grid/List View**: Toggle between grid and list views
+- **Search & Filter**: Search projects and filter by visibility
+- **Create Project Modal**: Form to create new projects
+- **Project Cards**: Display project info with quick actions
 
-### `npm run build` fails to minify
+### Code Editor
+- **Monaco Editor**: Professional code editor with syntax highlighting
+- **File Tree**: Navigate project files and folders
+- **Real-time Collaboration**: See other users' cursors and changes
+- **Save & Commit**: Save files and create versions
+- **Collaborator Panel**: View online collaborators
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Project Settings
+- **General Settings**: Project name, description, visibility
+- **Collaborator Management**: Add, remove, and manage team members
+- **Version History**: View and manage project versions
+- **Danger Zone**: Delete project (owner only)
+
+## 🔐 Security Features
+
+- **JWT Authentication**: Secure token-based authentication
+- **Role-based Access**: Owner, Collaborator, Viewer roles
+- **Protected Routes**: Client-side route protection
+- **Input Validation**: Form validation and sanitization
+- **Secure API Calls**: Automatic token inclusion in requests
+
+## 🚀 Deployment
+
+### Build for Production
+```bash
+npm run build
+```
+
+### Environment Variables for Production
+```env
+REACT_APP_API_URL=https://your-api-domain.com/api
+REACT_APP_WS_URL=https://your-api-domain.com
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 Authors
+
+- **Ranveer** - *Initial work* - [ranveer2312](https://github.com/ranveer2312)
+
+## 🙏 Acknowledgments
+
+- [Monaco Editor](https://microsoft.github.io/monaco-editor/) - Professional code editor
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Lucide React](https://lucide.dev/) - Beautiful icons
+- [React Hot Toast](https://react-hot-toast.com/) - Toast notifications
+
+## 📞 Support
+
+If you have any questions or need help, please open an issue on GitHub or contact the maintainers.
