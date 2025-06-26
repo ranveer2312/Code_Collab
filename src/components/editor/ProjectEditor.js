@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { projectService } from '../../services/projectService';
-import websocketService from '../../services/websocketService';
 import Editor from '@monaco-editor/react';
 import { 
   Folder, 
@@ -14,18 +12,13 @@ import {
   GitCommit,
   Users,
   Settings,
-  MoreVertical,
-  Trash2,
-  Download,
-  Upload,
-  Eye,
-  EyeOff
+  Trash2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ProjectEditor = () => {
   const { projectId } = useParams();
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   
   const [project, setProject] = useState(null);
@@ -38,43 +31,108 @@ const ProjectEditor = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [showFileTree, setShowFileTree] = useState(true);
   const [showCollaborators, setShowCollaborators] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-  const [typingTimeout, setTypingTimeout] = useState(null);
   
   const editorRef = useRef(null);
   const monacoRef = useRef(null);
 
-  useEffect(() => {
-    fetchProjectData();
-    setupWebSocket();
-    
-    return () => {
-      websocketService.leaveProject();
-    };
-  }, [projectId]);
+  // Mock project data
+  const mockProject = {
+    id: projectId,
+    name: 'React Todo App',
+    description: 'A simple todo application built with React and TypeScript',
+    visibility: 'public',
+    ownerId: '1',
+    language: 'typescript'
+  };
+
+  // Mock files data
+  const mockFiles = [
+    {
+      id: '1',
+      name: 'App.tsx',
+      path: 'src/App.tsx',
+      type: 'file',
+      content: `import React from 'react';
+import './App.css';
+
+function App() {
+  return (
+    <div className="App">
+      <header className="App-header">
+        <h1>Welcome to CodeCollab</h1>
+        <p>Start editing your code here!</p>
+      </header>
+    </div>
+  );
+}
+
+export default App;`
+    },
+    {
+      id: '2',
+      name: 'index.tsx',
+      path: 'src/index.tsx',
+      type: 'file',
+      content: `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);`
+    },
+    {
+      id: '3',
+      name: 'package.json',
+      path: 'package.json',
+      type: 'file',
+      content: `{
+  "name": "codecollab-demo",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^4.9.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test"
+  }
+}`
+    }
+  ];
+
+  // Mock collaborators data
+  const mockCollaborators = [
+    { id: '2', name: 'John Doe', email: 'john@example.com', role: 'collaborator' },
+    { id: '3', name: 'Jane Smith', email: 'jane@example.com', role: 'viewer' }
+  ];
 
   useEffect(() => {
-    if (token && user) {
-      websocketService.connect(token, user.id);
-    }
-  }, [token, user]);
+    fetchProjectData();
+  }, [projectId]);
 
   const fetchProjectData = async () => {
     try {
       setLoading(true);
-      const [projectResponse, filesResponse, collaboratorsResponse] = await Promise.all([
-        projectService.getProject(projectId),
-        projectService.getProjectFiles(projectId),
-        projectService.getCollaborators(projectId)
-      ]);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      setProject(projectResponse.data);
-      setFiles(filesResponse.data);
-      setCollaborators(collaboratorsResponse.data);
+      setProject(mockProject);
+      setFiles(mockFiles);
+      setCollaborators(mockCollaborators);
       
       // Select first file if available
-      if (filesResponse.data.length > 0 && !selectedFile) {
-        handleFileSelect(filesResponse.data[0]);
+      if (mockFiles.length > 0 && !selectedFile) {
+        handleFileSelect(mockFiles[0]);
       }
     } catch (error) {
       console.error('Error fetching project data:', error);
@@ -85,38 +143,10 @@ const ProjectEditor = () => {
     }
   };
 
-  const setupWebSocket = () => {
-    websocketService.joinProject(projectId);
-    
-    websocketService.addEventListener('user_joined_project', (data) => {
-      setOnlineUsers(prev => [...prev, data.user]);
-      toast.success(`${data.user.name} joined the project`);
-    });
-    
-    websocketService.addEventListener('user_left_project', (data) => {
-      setOnlineUsers(prev => prev.filter(u => u.id !== data.user.id));
-      toast.info(`${data.user.name} left the project`);
-    });
-    
-    websocketService.addEventListener('file_content_changed', (data) => {
-      if (data.userId !== user.id && data.filePath === selectedFile?.path) {
-        setFileContent(data.content);
-      }
-    });
-    
-    websocketService.addEventListener('user_typing', (data) => {
-      if (data.userId !== user.id) {
-        setIsTyping(true);
-        setTimeout(() => setIsTyping(false), 2000);
-      }
-    });
-  };
-
   const handleFileSelect = async (file) => {
     try {
       setSelectedFile(file);
-      const response = await projectService.getFileContent(projectId, file.path);
-      setFileContent(response.data.content);
+      setFileContent(file.content || '');
     } catch (error) {
       console.error('Error loading file content:', error);
       toast.error('Failed to load file content');
@@ -125,21 +155,6 @@ const ProjectEditor = () => {
 
   const handleEditorChange = (value, event) => {
     setFileContent(value);
-    
-    // Send typing status
-    websocketService.sendTypingStatus(selectedFile?.path, true);
-    
-    // Clear previous timeout
-    if (typingTimeout) {
-      clearTimeout(typingTimeout);
-    }
-    
-    // Set new timeout
-    const timeout = setTimeout(() => {
-      websocketService.sendTypingStatus(selectedFile?.path, false);
-    }, 1000);
-    
-    setTypingTimeout(timeout);
   };
 
   const handleSave = async () => {
@@ -147,10 +162,15 @@ const ProjectEditor = () => {
     
     try {
       setSaving(true);
-      await projectService.saveFileContent(projectId, selectedFile.path, fileContent);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Send content change to other users
-      websocketService.sendFileContentChange(selectedFile.path, fileContent);
+      // Update file content in local state
+      setFiles(prev => prev.map(file => 
+        file.id === selectedFile.id 
+          ? { ...file, content: fileContent }
+          : file
+      ));
       
       toast.success('File saved successfully');
     } catch (error) {
@@ -164,13 +184,18 @@ const ProjectEditor = () => {
   const handleCreateFile = async (path, isDirectory = false) => {
     try {
       if (isDirectory) {
-        // Handle directory creation
         toast.info('Directory creation not implemented yet');
         return;
       }
       
-      const response = await projectService.createFile(projectId, path, '');
-      const newFile = response.data;
+      const newFile = {
+        id: Date.now().toString(),
+        name: path.split('/').pop(),
+        path: path,
+        type: 'file',
+        content: ''
+      };
+      
       setFiles(prev => [...prev, newFile]);
       handleFileSelect(newFile);
       toast.success('File created successfully');
@@ -186,7 +211,6 @@ const ProjectEditor = () => {
     }
     
     try {
-      await projectService.deleteFile(projectId, file.path);
       setFiles(prev => prev.filter(f => f.path !== file.path));
       
       if (selectedFile?.path === file.path) {
@@ -206,10 +230,8 @@ const ProjectEditor = () => {
     if (!message) return;
     
     try {
-      await projectService.createVersion(projectId, {
-        message,
-        description: `Updated ${selectedFile?.name || 'files'}`
-      });
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       toast.success('Version created successfully');
     } catch (error) {
       console.error('Error creating version:', error);
@@ -292,10 +314,6 @@ const ProjectEditor = () => {
           </div>
           
           <div className="flex items-center space-x-2">
-            {isTyping && (
-              <span className="text-sm text-gray-500">Someone is typing...</span>
-            )}
-            
             <button
               onClick={handleSave}
               disabled={saving}
@@ -432,9 +450,7 @@ const ProjectEditor = () => {
                     <p className="text-sm font-medium text-gray-900">{collaborator.name}</p>
                     <p className="text-xs text-gray-500">{collaborator.email}</p>
                   </div>
-                  <div className={`w-2 h-2 rounded-full ${
-                    onlineUsers.some(u => u.id === collaborator.id) ? 'bg-green-500' : 'bg-gray-300'
-                  }`} />
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
                 </div>
               ))}
             </div>

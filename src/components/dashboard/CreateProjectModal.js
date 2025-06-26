@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Folder, Eye, EyeOff, Users } from 'lucide-react';
+import { X, Folder, Eye, EyeOff } from 'lucide-react';
 
 const CreateProjectModal = ({ onClose, onSubmit }) => {
   const [formData, setFormData] = useState({

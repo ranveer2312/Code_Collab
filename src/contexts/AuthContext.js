@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode';
-import { authService } from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -20,22 +18,16 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       const storedToken = localStorage.getItem('token');
-      if (storedToken) {
+      const storedUser = localStorage.getItem('user');
+      
+      if (storedToken && storedUser) {
         try {
-          const decoded = jwtDecode(storedToken);
-          const currentTime = Date.now() / 1000;
-          
-          if (decoded.exp > currentTime) {
-            setToken(storedToken);
-            setUser(decoded);
-          } else {
-            localStorage.removeItem('token');
-            setToken(null);
-            setUser(null);
-          }
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
         } catch (error) {
-          console.error('Invalid token:', error);
+          console.error('Invalid stored data:', error);
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
           setToken(null);
           setUser(null);
         }
@@ -48,46 +40,73 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await authService.login(email, password);
-      const { token: newToken, user: userData } = response.data;
+      // Mock login - simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      localStorage.setItem('token', newToken);
-      setToken(newToken);
-      setUser(userData);
+      // Mock user data
+      const mockUser = {
+        id: '1',
+        name: 'Demo User',
+        email: email,
+        avatar: null
+      };
+      
+      const mockToken = 'mock-jwt-token-' + Date.now();
+      
+      localStorage.setItem('token', mockToken);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      setToken(mockToken);
+      setUser(mockUser);
+      
       return { success: true };
     } catch (error) {
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Login failed' 
+        error: 'Login failed' 
       };
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await authService.register(userData);
-      const { token: newToken, user: userInfo } = response.data;
+      // Mock registration - simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      localStorage.setItem('token', newToken);
-      setToken(newToken);
-      setUser(userInfo);
+      // Mock user data
+      const mockUser = {
+        id: '1',
+        name: userData.name,
+        email: userData.email,
+        avatar: null
+      };
+      
+      const mockToken = 'mock-jwt-token-' + Date.now();
+      
+      localStorage.setItem('token', mockToken);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      setToken(mockToken);
+      setUser(mockUser);
+      
       return { success: true };
     } catch (error) {
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Registration failed' 
+        error: 'Registration failed' 
       };
     }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
   };
 
   const updateUser = (userData) => {
-    setUser(userData);
+    const updatedUser = { ...user, ...userData };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
   };
 
   const value = {

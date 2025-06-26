@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { projectService } from '../../services/projectService';
 import { 
   Plus, 
   Folder, 
@@ -31,6 +30,44 @@ const Dashboard = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
+  // Mock projects data
+  const mockProjects = [
+    {
+      id: '1',
+      name: 'React Todo App',
+      description: 'A simple todo application built with React and TypeScript',
+      visibility: 'public',
+      ownerId: '1',
+      collaborators: [
+        { id: '2', name: 'John Doe', email: 'john@example.com', role: 'collaborator' }
+      ],
+      updatedAt: new Date().toISOString(),
+      language: 'typescript'
+    },
+    {
+      id: '2',
+      name: 'E-commerce Backend',
+      description: 'RESTful API for e-commerce platform using Spring Boot',
+      visibility: 'private',
+      ownerId: '1',
+      collaborators: [],
+      updatedAt: new Date(Date.now() - 86400000).toISOString(),
+      language: 'java'
+    },
+    {
+      id: '3',
+      name: 'Portfolio Website',
+      description: 'Personal portfolio website with modern design',
+      visibility: 'public',
+      ownerId: '1',
+      collaborators: [
+        { id: '3', name: 'Jane Smith', email: 'jane@example.com', role: 'viewer' }
+      ],
+      updatedAt: new Date(Date.now() - 172800000).toISOString(),
+      language: 'javascript'
+    }
+  ];
+
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -42,8 +79,9 @@ const Dashboard = () => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await projectService.getProjects();
-      setProjects(response.data);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setProjects(mockProjects);
     } catch (error) {
       console.error('Error fetching projects:', error);
       toast.error('Failed to load projects');
@@ -73,8 +111,18 @@ const Dashboard = () => {
 
   const handleCreateProject = async (projectData) => {
     try {
-      const response = await projectService.createProject(projectData);
-      setProjects(prev => [response.data, ...prev]);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const newProject = {
+        id: Date.now().toString(),
+        ...projectData,
+        ownerId: user.id,
+        collaborators: [],
+        updatedAt: new Date().toISOString()
+      };
+      
+      setProjects(prev => [newProject, ...prev]);
       setShowCreateModal(false);
       toast.success('Project created successfully!');
     } catch (error) {
@@ -89,7 +137,8 @@ const Dashboard = () => {
     }
 
     try {
-      await projectService.deleteProject(projectId);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       setProjects(prev => prev.filter(project => project.id !== projectId));
       toast.success('Project deleted successfully');
     } catch (error) {
@@ -100,7 +149,7 @@ const Dashboard = () => {
 
   const getProjectRole = (project) => {
     if (project.ownerId === user.id) return 'Owner';
-    if (project.collaborators?.some(c => c.userId === user.id && c.role === 'collaborator')) return 'Collaborator';
+    if (project.collaborators?.some(c => c.id === user.id && c.role === 'collaborator')) return 'Collaborator';
     return 'Viewer';
   };
 
